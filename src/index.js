@@ -1,7 +1,6 @@
-const { app, BrowserWindow,ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('node:path');
-const { autoUpdater } = require('update-electron-app');
- autoUpdater.checkForUpdatesAndNotify();
+const electron = require('update-electron-app');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -31,10 +30,20 @@ const createWindow = () => {
   mainWindow.webContents.openDevTools();
 };
 
+
+async function handleFileOpen() {
+  const { canceled, filePaths } = await dialog.showOpenDialog()
+  if (!canceled) {
+    return filePaths[0]
+  }
+}
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => { ipcMain.handle('ping', () => 'pong');
+app.whenReady().then(() => {
+  ipcMain.handle('dialog:openFile', handleFileOpen)
+  ipcMain.handle('ping', () => 'pong');
   createWindow();
 
   // On OS X it's common to re-create a window in the app when the
